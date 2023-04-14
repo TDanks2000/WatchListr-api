@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String     @id @default(cuid())
+  accountId      String     @default("N/A")
+  uuid           String     @default(uuid())
+
+  email          String?     @unique  
+  emailVerified  Boolean?    @default(false)
+  emailToken     String?     @unique @default(uuid())
+
+  name           String?     @unique
+  username       String?     @unique
+  image          String?
+  hashedPassword String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  
+  lastIp         String?
+  lastLogin      DateTime?
+  loginsCount    Int        @default(0)
+  lastUserAgent  String?
+  lastReferrer   String?
+  lastLocation   String?
+
+  watchList WatchListItem[]
+  watchedList WatchedListItem[]
+
+  lists List[]
+}
+
+model WatchListItem {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String
+  mediaId   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model WatchedListItem {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String
+  mediaId   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model List {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items ListItem[]
+}
+
+model ListItem {
+  id        String     @id @default(cuid())
+  list      List       @relation(fields: [listId], references: [id])
+  listId    String
+  mediaId   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
