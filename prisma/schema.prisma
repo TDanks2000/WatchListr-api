@@ -64,6 +64,7 @@ model List {
   name      String
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  admins    Json?
   items ListItem[]
 }
 
