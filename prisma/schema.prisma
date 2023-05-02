@@ -11,50 +11,50 @@ datasource db {
 }
 
 model User {
-  id             String     @id @default(cuid())
-  accountId      String     @default("N/A")
-  uuid           String     @default(uuid())
+  id        String @id @default(cuid())
+  accountId String @default("N/A")
+  uuid      String @default(uuid())
 
-  email          String?     @unique  
-  emailVerified  Boolean?    @default(false)
-  emailToken     String?     @unique @default(uuid())
+  email         String?  @unique
+  emailVerified Boolean? @default(false)
+  emailToken    String?  @unique @default(uuid())
 
-  name           String?     @unique
-  username       String?     @unique
+  name           String?  @unique
+  username       String?  @unique
   image          String?
   hashedPassword String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  
-  lastIp         String?
-  lastLogin      DateTime?
-  loginsCount    Int        @default(0)
-  lastUserAgent  String?
-  lastReferrer   String?
-  lastLocation   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  watchList WatchListItem[]
+  lastIp        String?
+  lastLogin     DateTime?
+  loginsCount   Int       @default(0)
+  lastUserAgent String?
+  lastReferrer  String?
+  lastLocation  String?
+
+  watchList   WatchListItem[]
   watchedList WatchedListItem[]
 
   lists List[]
 }
 
 model WatchListItem {
-  id        String     @id @default(cuid())
-  user      User       @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
   mediaId   String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WatchedListItem {
-  id        String     @id @default(cuid())
-  user      User       @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
   mediaId   String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model List {
@@ -64,15 +64,80 @@ model List {
   name      String
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  items ListItem[]
+  items     ListItem[]
 }
 
 model ListItem {
-  id        String     @id @default(cuid())
-  list      List       @relation(fields: [listId], references: [id])
+  id        String   @id @default(cuid())
+  list      List     @relation(fields: [listId], references: [id])
   listId    String
   mediaId   String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+model Movies {
+  id              Int      @id @unique
+  title           String   @unique
+  description     String
+  release_date    String?
+  trailer         Json?
+  runtime         Int?
+  poster          String?
+  background      String?
+  genres          String[]
+  rating          Int?
+  recommendations Json?
+  similar         Json?
+  cast            Json?
+  mappings        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model TvShows {
+  id              Int      @id @unique
+  title           String   @unique
+  description     String
+  trailer         Json
+  runtime         Int?
+  poster          String?
+  background      String?
+  season          String?
+  seasonYear      Int?
+  start_date      String?
+  end_date        String?
+  genres          String[]
+  rating          Int?
+  recommendations Json?
+  similar         Json?
+  cast            Json?
+  Seasons         Json?
+  mappings        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Anime {
+  id          Int      @id @unique
+  title       String   @unique
+  description String
+  trailer     Json
+  runtime     Int?
+  poster      String?
+  background  String?
+  season      String?
+  seasonYear  Int?
+  start_date  String?
+  end_date    String?
+  rating      Int?
+  type        String?
+  genres      String[]
+  synonyms    String[]
+  relations   Json?
+  cast        Json?
+  episodes    Json?
+  mappings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
