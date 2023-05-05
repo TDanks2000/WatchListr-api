@@ -33,12 +33,17 @@ class TMDB {
     for (const line of file.split("\n")) {
       const json = JSON.parse(line);
       const id = json.id;
+      console.log(id);
     }
   };
 
   /* Used to formulate a date string based on UTC time. */
   private getUTCDateString = (): string => {
     const date = new Date();
+
+    // if time is before
+    if (!(date.getUTCHours() >= 8 && date.getUTCMinutes() >= 1))
+      date.setDate(date.getDate() - 1);
 
     // Get each individual component of the full, human-readable date.
     const year: string = date.getUTCFullYear().toString().padStart(2, "0");
