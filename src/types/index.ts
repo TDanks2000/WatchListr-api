@@ -1,2 +1,4 @@
 import { RegisterUser, LoginUser } from "./user";
-export { RegisterUser, LoginUser };
+import { FileType, IFile } from "./types";
+
+export { RegisterUser, LoginUser, FileType, IFile };
