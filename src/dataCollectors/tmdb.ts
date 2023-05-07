@@ -48,55 +48,60 @@ class TMDB {
         }/${id}?api_key=${
           this.apiKey
         }&language=en-US&append_to_response=release_dates,watch/providers,alternative_titles,credits,external_ids,images,keywords,recommendations,reviews,similar,translations,videos&include_image_language=en`;
+        try {
+          const { data } = await axios.get(tmdbInfoUrl);
+          const title = data.title ?? data.name ?? "";
+          const description = data.overview ?? "";
+          const release_date = data.release_date ?? "";
+          const poster = data.poster_path ?? "";
+          const backdrop = data.backdrop_path ?? "";
+          const genres = data.genres.map((genre: any) => genre.name);
+          const rating = data.vote_average ?? "";
+          const runtime = data.runtime ?? "";
+          const similar = data?.similar?.results.map((result: any) => ({
+            poster: result.poster_path,
+            backdrop: result.backdrop_path,
+            description: result.overview,
+            title: result.title ?? result.name,
+            rating: result.vote_average,
+          }));
+          const cast = data.credits.cast.map((cast: any) => ({
+            name: cast.name,
+            character: cast.character,
+            image: cast.profile_path,
+            known_for: cast.known_for_department,
+            gender: cast.gender,
+          }));
 
-        const { data } = await axios.get(tmdbInfoUrl);
+          const updateData = {
+            id,
+            title,
+            description,
+            release_date,
+            poster,
+            background: backdrop,
+            genres,
+            rating,
+            runtime,
+            similar,
+            cast,
+          };
 
-        const title = data.title ?? data.name ?? "";
-        const description = data.overview ?? "";
-        const release_date = data.release_date ?? "";
-        const poster = data.poster_path ?? "";
-        const backdrop = data.backdrop_path ?? "";
-        const genres = data.genres.map((genre: any) => genre.name);
-        const rating = data.vote_average ?? "";
-        const runtime = data.runtime ?? "";
-        const similar = data?.similar?.results.map((result: any) => ({
-          poster: result.poster_path,
-          backdrop: result.backdrop_path,
-          description: result.overview,
-          title: result.title ?? result.name,
-          rating: result.vote_average,
-        }));
-        const cast = data.credits.cast.map((cast: any) => ({
-          name: cast.name,
-          character: cast.character,
-          image: cast.profile_path,
-          known_for: cast.known_for_department,
-          gender: cast.gender,
-        }));
+          // add to db
+          type === MediaType.MOVIE
+            ? await updateDB.addMovie(updateData)
+            : await updateDB.addTv(updateData);
 
-        const updateData = {
-          id,
-          title,
-          description,
-          release_date,
-          poster,
-          background: backdrop,
-          genres,
-          rating,
-          runtime,
-          similar,
-          cast,
-        };
+          this.updateCurrentId(id, type);
 
-        // add to db
-        type === MediaType.MOVIE
-          ? await updateDB.addMovie(updateData)
-          : await updateDB.addTv(updateData);
-
-        this.updateCurrentId(id, type);
-
-        console.info(`Updated ${id} and added it to the db...`);
-        utils.wait(500);
+          console.info(`Updated ${id} and added it to the db...`);
+          utils.wait(500);
+        } catch (error) {
+          console.error(
+            `there was an error with ${id}: ${(error as Error).message}`
+          );
+          continue;
+        }
       } else {
         console.warn(
           `there was an error with ${id}. or it is already in the db....`
