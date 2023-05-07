@@ -78,7 +78,7 @@ model ListItem {
 
 model Movies {
   id              Int      @id @unique
-  title           String   @unique
+  title           String
   description     String
   release_date    String?
   trailer         Json?
@@ -86,7 +86,7 @@ model Movies {
   poster          String?
   background      String?
   genres          String[]
-  rating          Int?
+  rating          Float?
   recommendations Json?
   similar         Json?
   cast            Json?
@@ -97,7 +97,7 @@ model Movies {
 
 model TvShows {
   id              Int      @id @unique
-  title           String   @unique
+  title           String
   description     String
   trailer         Json
   runtime         Int?
@@ -120,7 +120,7 @@ model TvShows {
 
 model Anime {
   id          Int      @id @unique
-  title       String   @unique
+  title       String
   description String
   trailer     Json
   runtime     Int?

@@ -1,5 +1,5 @@
-import chalk, { Color } from "chalk";
+import Console from "@tdanks2000/fancyconsolelog";
 
-export const log = (message: string, color?: typeof Color) => {
-  console.log(chalk[color || "green"](message));
-};
+const console = new Console();
+
+export default console;

@@ -1,11 +1,13 @@
+require("dotenv").config();
+
 import fs from "fs";
 import { FileType } from "../types";
-import { Download } from "../utils";
-import Downloader from "../utils/downloader";
+import { Constants, Download, console, updateDB, utils } from "../utils";
+import axios from "axios";
 
 class TMDB {
   readonly name = "TMDB";
-  protected apiUrl = "https://www.themoviedb.org";
+  protected apiUrl = "https://api.themoviedb.org/3";
   protected apiKey = process.env.TMDB_API_KEY;
 
   downloadAndParse = async (type: "tv_series" | "movie") => {
@@ -18,14 +20,14 @@ class TMDB {
     const downloader = new Download(downloadURL, fileName, FileType.JSON);
     const file = await this.downloadIdsFile(downloader);
 
-    this.parseIdFile(file);
+    this.parseIdFile(file, type);
   };
 
-  private downloadIdsFile = async (downloader: Downloader) => {
+  private downloadIdsFile = async (downloader: Download) => {
     return downloader.downloadFile();
   };
 
-  private parseIdFile = async (filePath: string) => {
+  private parseIdFile = async (filePath: string, type: string) => {
     // read file
     const file = fs.readFileSync(filePath, "utf8");
     // parse file
@@ -33,7 +35,65 @@ class TMDB {
     for (const line of file.split("\n")) {
       const json = JSON.parse(line);
       const id = json.id;
-      console.log(id);
+
+      const check = await updateDB.checkMovie(id);
+
+      if (!check) {
+        const tmdbInfoUrl = `${this.apiUrl}/${
+          type === "movie" ? "movie" : "tv"
+        }/${id}?api_key=${
+          this.apiKey
+        }&language=en-US&append_to_response=release_dates,watch/providers,alternative_titles,credits,external_ids,images,keywords,recommendations,reviews,similar,translations,videos&include_image_language=en`;
+
+        const { data } = await axios.get(tmdbInfoUrl);
+
+        const title = data.title ?? data.name ?? "";
+        const description = data.overview ?? "";
+        const release_date = data.release_date ?? "";
+        const poster = data.poster_path ?? "";
+        const backdrop = data.backdrop_path ?? "";
+        const genres = data.genres.map((genre: any) => genre.name);
+        const rating = data.vote_average ?? "";
+        const runtime = data.runtime ?? "";
+        const similar = data?.similar?.results.map((result: any) => ({
+          poster: result.poster_path,
+          backdrop: result.backdrop_path,
+          description: result.overview,
+          title: result.title ?? result.name,
+          rating: result.vote_average,
+        }));
+        const cast = data.credits.cast.map((cast: any) => ({
+          name: cast.name,
+          character: cast.character,
+          image: cast.profile_path,
+          known_for: cast.known_for_department,
+          gender: cast.gender,
+        }));
+
+        const updateData = {
+          id,
+          title,
+          description,
+          release_date,
+          poster,
+          background: backdrop,
+          genres,
+          rating,
+          runtime,
+          similar,
+          cast,
+        };
+
+        await updateDB.addMovie(updateData);
+
+        this.updateCurrentId(id);
+        console.info(`Updated ${id} and added it to the db...`);
+        utils.wait(500);
+      } else {
+        console.warn(
+          `there was an error with ${id}. or it is already in the db....`
+        );
+      }
     }
   };
 
@@ -51,6 +111,20 @@ class TMDB {
     const day: string = date.getUTCDate().toString().padStart(2, "0");
 
     return `${month}_${day}_${year}`;
+  };
+
+  updateCurrentId = (currentId: number) => {
+    const currentIds = JSON.parse(
+      fs.readFileSync(Constants.currentIdsFile, "utf8")
+    );
+
+    // update currentIds.tmdb
+    currentIds.tmdb = currentId;
+
+    fs.writeFileSync(
+      Constants.currentIdsFile,
+      JSON.stringify(currentIds, null, 2)
+    );
   };
 }
 
