@@ -24,7 +24,8 @@ class TMDB {
   };
 
   private downloadIdsFile = async (downloader: Download) => {
-    return downloader.downloadFile();
+    const file = await downloader.downloadFile();
+    return file;
   };
 
   private parseIdFile = async (filePath: string, type: MediaType) => {
