@@ -99,7 +99,7 @@ model TvShows {
   id              Int      @id @unique
   title           String
   description     String
-  trailer         Json
+  trailer         Json?
   runtime         Int?
   poster          String?
   background      String?
@@ -122,7 +122,7 @@ model Anime {
   id          Int      @id @unique
   title       String
   description String
-  trailer     Json
+  trailer     Json?
   runtime     Int?
   poster      String?
   background  String?

@@ -2,6 +2,7 @@ require("dotenv").config();
 import express from "express";
 import bodyParser from "body-parser";
 import multer from "multer";
+import "../scripts/tmdb";
 
 import { console } from "./utils";
 

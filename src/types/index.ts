@@ -1,4 +1,4 @@
 import { RegisterUser, LoginUser } from "./user";
-import { FileType, IFile } from "./types";
+import { FileType, IFile, MediaType } from "./types";
 
-export { RegisterUser, LoginUser, FileType, IFile };
+export { RegisterUser, LoginUser, FileType, IFile, MediaType };

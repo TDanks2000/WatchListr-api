@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 import fs from "fs";
-import { FileType } from "../types";
+import { FileType, MediaType } from "../types";
 import { Constants, Download, console, updateDB, utils } from "../utils";
 import axios from "axios";
 
@@ -10,7 +10,7 @@ class TMDB {
   protected apiUrl = "https://api.themoviedb.org/3";
   protected apiKey = process.env.TMDB_API_KEY;
 
-  downloadAndParse = async (type: "tv_series" | "movie") => {
+  downloadAndParse = async (type: MediaType) => {
     const date = this.getUTCDateString();
     const downloadURL: string = `https://files.tmdb.org/p/exports/${type}_ids_${date}.json.gz`;
     const fileName: string = `${this.name}_${type}`;
@@ -27,20 +27,23 @@ class TMDB {
     return downloader.downloadFile();
   };
 
-  private parseIdFile = async (filePath: string, type: string) => {
+  private parseIdFile = async (filePath: string, type: MediaType) => {
     // read file
     const file = fs.readFileSync(filePath, "utf8");
-    // parse file
 
+    // parse file
     for (const line of file.split("\n")) {
       const json = JSON.parse(line);
       const id = json.id;
 
-      const check = await updateDB.checkMovie(id);
+      const check =
+        type === MediaType.MOVIE
+          ? await updateDB.checkMovie(id)
+          : await updateDB.checkTv(id);
 
       if (!check) {
         const tmdbInfoUrl = `${this.apiUrl}/${
-          type === "movie" ? "movie" : "tv"
+          type === MediaType.MOVIE ? "movie" : "tv"
         }/${id}?api_key=${
           this.apiKey
         }&language=en-US&append_to_response=release_dates,watch/providers,alternative_titles,credits,external_ids,images,keywords,recommendations,reviews,similar,translations,videos&include_image_language=en`;
@@ -84,9 +87,13 @@ class TMDB {
           cast,
         };
 
-        await updateDB.addMovie(updateData);
+        // add to db
+        type === MediaType.MOVIE
+          ? await updateDB.addMovie(updateData)
+          : await updateDB.addTv(updateData);
 
-        this.updateCurrentId(id);
+        this.updateCurrentId(id, type);
+
         console.info(`Updated ${id} and added it to the db...`);
         utils.wait(500);
       } else {
@@ -113,23 +120,29 @@ class TMDB {
     return `${month}_${day}_${year}`;
   };
 
-  updateCurrentId = (currentId: number) => {
+  private updateCurrentId = (currentId: number, type: MediaType) => {
     const currentIds = JSON.parse(
       fs.readFileSync(Constants.currentIdsFile, "utf8")
     );
 
     // update currentIds.tmdb
-    currentIds.tmdb = currentId;
+    type === MediaType.MOVIE
+      ? (currentIds.tmdb.movie = currentId)
+      : (currentIds.tmdb.tv = currentId);
 
     fs.writeFileSync(
       Constants.currentIdsFile,
       JSON.stringify(currentIds, null, 2)
     );
   };
+
+  private checkCurrentId = () => {
+    const currentIds = JSON.parse(
+      fs.readFileSync(Constants.currentIdsFile, "utf8")
+    );
+
+    return currentIds.tmdb;
+  };
 }
 
-(async () => {
-  const tmdb = new TMDB();
-
-  await tmdb.downloadAndParse("movie");
-})();
+export default TMDB;

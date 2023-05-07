@@ -25,8 +25,7 @@ const checkMovie = async (id: number) => {
     },
   });
 
-  if (amIInDB) return true;
-  return false;
+  return amIInDB ? true : false;
 };
 
 const addMovie = async (data: DataProps) => {
@@ -42,4 +41,28 @@ const addMovie = async (data: DataProps) => {
   }
 };
 
-export { addMovie, checkMovie };
+const checkTv = async (id: number) => {
+  // check if id is already in db
+  const amIInDB = await prisma.tvShows.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  return amIInDB ? true : false;
+};
+
+const addTv = async (data: DataProps) => {
+  // check if id is already in db
+  const amIInDB = await checkTv(data.id);
+
+  if (!amIInDB) {
+    const tv = await prisma.tvShows.create({
+      data,
+    });
+
+    return tv;
+  }
+};
+
+export { addMovie, checkMovie, checkTv, addTv };
